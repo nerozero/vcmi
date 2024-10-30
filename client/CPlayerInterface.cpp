@@ -249,7 +249,44 @@ void CPlayerInterface::performAutosave()
 				};
 				std::replace_if(name.begin(), name.end(), isSymbolIllegal, '_' );
 
-				prefix = name + "_" + cb->getStartInfo()->startTimeIso8601 + "/";
+
+                /**
+                 * Modified autosave directory name
+                 * old: "<mapname>_20240102T040506"
+                 * new: "2024-01-02 04-05-06 <mapname>"
+                 */
+                if( 0 ){
+                    prefix = name + "_" + cb->getStartInfo()->startTimeIso8601 + "/";
+                } else {
+                    char tstamp[ 25 ];
+                    uint Y,m,d,H,M,S;
+
+                    // scan datetime parts from ISO-8601 string
+                    int result = sscanf( cb->getStartInfo()->startTimeIso8601.data(), "%4u%2u%2uT%2u%2u%2u", &Y, &m, &d, &H, &M, &S );
+
+                    // Make sure we parsed correctly
+                    if( result == 6 ){
+
+                        // reformat the output timestamp string
+                        sprintf( tstamp, "%04u-%02u-%02u %02u-%02u-%02u", Y, m, d, H, M, S );
+
+                        // asseble new directory prefix
+                        prefix = std::string( tstamp ) + " " + name + "/";
+
+                    } else {
+
+                        // use the original prefix if parsing failed
+                        prefix = name + "_" + cb->getStartInfo()->startTimeIso8601 + "/";
+
+                    }
+                    
+                }
+                /**
+                 * END autosave directory patch
+                 */
+
+
+
 			}
 		}
 
